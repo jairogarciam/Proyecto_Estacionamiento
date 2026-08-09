@@ -1,0 +1,91 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Rol {
+  ADMIN
+  GUARDIA
+  DOCENTE
+}
+
+enum EstadoCajon {
+  LIBRE
+  OCUPADO
+  MANTENIMIENTO
+}
+
+model Usuario {
+  id             Int       @id @default(autoincrement())
+  nombre         String    @db.VarChar(255)
+  correo         String    @unique @db.VarChar(255)
+  password       String    @db.VarChar(255)
+  rol            Rol
+  qrToken        String?   @unique @map("qr_token") @db.VarChar(255)
+  
+  vehiculos      Vehiculo[]
+  accesos        Acceso[]
+  quejas         Queja[]
+
+  @@map("usuarios")
+}
+
+model Vehiculo {
+  id          Int     @id @default(autoincrement())
+  docenteId   Int     @map("docente_id")
+  placa       String  @unique @db.VarChar(50)
+  marca       String  @db.VarChar(100)
+  modelo      String  @db.VarChar(100)
+  color       String  @db.VarChar(50)
+
+  docente     Usuario @relation(fields: [docenteId], references: [id], onDelete: Cascade)
+  accesos     Acceso[]
+
+  @@map("vehiculos")
+}
+
+model Cajon {
+  id               Int         @id @default(autoincrement())
+  identificador    String      @unique @db.VarChar(50)
+  fila             String      @db.VarChar(10)
+  columna          Int
+  distanciaEntrada Int         @map("distancia_entrada")
+  estado           EstadoCajon
+
+  accesos          Acceso[]
+  quejas           Queja[]
+
+  @@map("cajones")
+}
+
+model Acceso {
+  id               Int       @id @default(autoincrement())
+  docenteId        Int       @map("docente_id")
+  cajonId          Int       @map("cajon_id")
+  vehiculoId       Int       @map("vehiculo_id")
+  fechaHoraEntrada DateTime  @default(now()) @map("fecha_hora_entrada")
+  fechaHoraSalida  DateTime? @map("fecha_hora_salida")
+
+  docente          Usuario   @relation(fields: [docenteId], references: [id])
+  cajon            Cajon     @relation(fields: [cajonId], references: [id])
+  vehiculo         Vehiculo  @relation(fields: [vehiculoId], references: [id])
+
+  @@map("accesos")
+}
+
+model Queja {
+  id          Int      @id @default(autoincrement())
+  docenteId   Int      @map("docente_id")
+  cajonId     Int      @map("cajon_id")
+  descripcion String   @db.Text
+  estado      String   @db.VarChar(50)
+
+  docente     Usuario  @relation(fields: [docenteId], references: [id])
+  cajon       Cajon    @relation(fields: [cajonId], references: [id])
+
+  @@map("quejas")
+}
