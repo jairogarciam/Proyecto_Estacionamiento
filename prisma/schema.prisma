@@ -22,7 +22,7 @@ enum EstadoCajon {
 model Usuario {
   id             Int       @id @default(autoincrement())
   nombre         String    @db.VarChar(255)
-  correo         String    @unique @db.VarChar(255)
+  usuario         String    @unique @db.VarChar(255)
   password       String    @db.VarChar(255)
   rol            Rol
   qrToken        String?   @unique @map("qr_token") @db.VarChar(255)
