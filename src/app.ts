@@ -7,6 +7,7 @@ const app: Application = express();
 app.use(cors());
 app.use(express.json()); // Permite recibir JSON en los req.body de Postman
 import authRoutes from './modules/auth/auth.routes';
+import cajonesRoutes from './modules/cajones/cajones.routes';
 // Ruta base de prueba
 app.get('/', (req, res) => {
     res.json({ message: 'API del Sistema de Estacionamiento funcionando correctamente 🚗' });
@@ -14,5 +15,6 @@ app.get('/', (req, res) => {
 
 // Aquí iremos importando y conectando nuestras rutas (auth, docentes, cajones, etc.)
 app.use('/api/auth', authRoutes);
+app.use('/api/cajones', cajonesRoutes);
 
 export default app;
