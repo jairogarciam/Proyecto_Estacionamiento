@@ -1,24 +1,15 @@
 {
-  "name": "proyecto",
+  "name": "estacionamiento-backend",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --watch src --ext ts --exec tsx src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jairogarciam/Proyecto_Estacionamiento.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/jairogarciam/Proyecto_Estacionamiento/issues"
-  },
-  "homepage": "https://github.com/jairogarciam/Proyecto_Estacionamiento#readme",
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
@@ -26,14 +17,12 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.2.0",
     "@types/qrcode": "^1.5.6",
-    "nodemon": "^3.1.14",
-    "prisma": "^6.19.3",
+    "prisma": "^7.9.1",
     "ts-node": "^10.9.2",
-    "tsx": "^4.23.11",
-    "typescript": "^5.9.3"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.3",
+    "@prisma/client": "^7.9.1",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
