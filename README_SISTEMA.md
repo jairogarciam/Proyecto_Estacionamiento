@@ -15,6 +15,8 @@ Este proyecto es una API REST en Express y TypeScript para administrar un estaci
 
 La base de datos utilizada es MySQL y el acceso se realiza mediante Prisma ORM.
 
+Para instalar el sistema en otra computadora, consulta el [Manual de instalación](MANUAL_INSTALACION.md). Incluye los requisitos, la configuración de MySQL, las migraciones, el seed de pruebas, el acceso desde otra computadora y la solución de problemas comunes.
+
 ## 2. Credenciales para entrar
 
 No existen credenciales predeterminadas en el proyecto. La contraseña de `DATABASE_URL` en `.env` es la contraseña de MySQL, no la contraseña del sistema.

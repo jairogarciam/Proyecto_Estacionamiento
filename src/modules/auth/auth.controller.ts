@@ -73,7 +73,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         const token = jwt.sign(
             { id: usuarioEncontrado.id, rol: usuarioEncontrado.rol }, 
             secret, 
-            { expiresIn: '8h' }
+            { expiresIn: '10min' }
         );
 
         res.status(200).json({
