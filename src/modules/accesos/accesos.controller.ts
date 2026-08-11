@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { PrismaClient, Prisma } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { Prisma } from '@prisma/client';
+import prisma from '../../config/prisma';
+import { AuthRequest } from '../../middlewares/auth.middleware';
 
 export const registrarEntrada = async (req: Request, res: Response) => {
   try {
@@ -51,10 +51,14 @@ export const registrarEntrada = async (req: Request, res: Response) => {
     // 5. Transacción para asegurar la integridad de datos
     const nuevoAcceso = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Cambiar estado del cajón
-      await tx.cajon.update({
-        where: { id: cajonAsignado.id },
-        data: { estado: 'OCUPADO' }
+      const cajonActualizado = await tx.cajon.updateMany({
+        where: { id: cajonAsignado.id, estado: 'LIBRE' },
+        data: { estado: 'OCUPADO', placaOcupante: vehiculo.placa }
       });
+
+      if (cajonActualizado.count === 0) {
+        throw new Error('El cajón seleccionado ya no está disponible.');
+      }
 
       // Crear el registro de acceso (fechaHoraEntrada se pone sola por @default(now()))
       return await tx.acceso.create({
@@ -101,7 +105,7 @@ export const registrarSalida = async (req: Request, res: Response) => {
 
       await tx.cajon.update({
         where: { id: acceso.cajonId },
-        data: { estado: 'LIBRE' }
+        data: { estado: 'LIBRE', placaOcupante: null }
       });
     });
 
@@ -127,5 +131,42 @@ export const obtenerHistorial = async (req: Request, res: Response) => {
     return res.status(200).json(historial);
   } catch (error) {
     return res.status(500).json({ error: 'Error al obtener el historial.' });
+  }
+};
+
+export const obtenerActivos = async (req: Request, res: Response) => {
+  try {
+    const accesos = await prisma.acceso.findMany({
+      where: { fechaHoraSalida: null },
+      include: {
+        docente: { select: { nombre: true, usuario: true } },
+        vehiculo: { select: { placa: true, marca: true, modelo: true } },
+        cajon: { select: { identificador: true, fila: true, columna: true, placaOcupante: true } }
+      },
+      orderBy: { fechaHoraEntrada: 'desc' }
+    });
+
+    return res.status(200).json(accesos);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Error al obtener los accesos activos.' });
+  }
+};
+
+export const obtenerMisAccesos = async (req: AuthRequest, res: Response) => {
+  try {
+    const accesos = await prisma.acceso.findMany({
+      where: { docenteId: req.usuario.id },
+      include: {
+        vehiculo: { select: { placa: true, marca: true, modelo: true } },
+        cajon: { select: { identificador: true, fila: true, columna: true, placaOcupante: true } }
+      },
+      orderBy: { fechaHoraEntrada: 'desc' }
+    });
+
+    return res.status(200).json(accesos);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Error al obtener tus accesos.' });
   }
 };

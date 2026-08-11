@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { Prisma } from '@prisma/client';
 import prisma from '../../config/prisma';
 import { AuthRequest } from '../../middlewares/auth.middleware';
 
@@ -6,107 +7,102 @@ import { AuthRequest } from '../../middlewares/auth.middleware';
 export const crearQueja = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const docenteId = req.usuario?.id;
-        const { descripcion } = req.body;
+        const { descripcion, placaOcupante: placaOcupanteEntrada } = req.body;
+        const placaOcupante = String(placaOcupanteEntrada || '').trim().toUpperCase();
 
         if (!docenteId) {
             res.status(401).json({ error: 'Usuario no autenticado' });
             return;
         }
 
-        const accesoActivo = await prisma.acceso.findFirst({
-            where: {
-                docenteId,
-                fechaHoraSalida: null
-            },
-            include: {
-                cajon: true
-            },
-            orderBy: {
-                fechaHoraEntrada: 'desc'
-            }
-        });
-
-        if (!accesoActivo) {
-            res.status(404).json({ error: 'El docente no tiene un acceso activo' });
+        if (!placaOcupante) {
+            res.status(400).json({ error: 'Indica la placa del vehículo que ocupó el cajón.' });
             return;
         }
 
-        const quejaExistente = await prisma.queja.findFirst({
-            where: {
-                docenteId,
-                cajonId: accesoActivo.cajonId,
-                estado: 'PENDIENTE'
+        const resultado = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+            const accesoReclamante = await tx.acceso.findFirst({
+                where: { docenteId, fechaHoraSalida: null },
+                include: { cajon: true, vehiculo: { select: { placa: true } } },
+                orderBy: { fechaHoraEntrada: 'desc' }
+            });
+
+            if (!accesoReclamante) throw new Error('El docente no tiene un acceso activo');
+            if (placaOcupante === accesoReclamante.vehiculo.placa.trim().toUpperCase()) {
+                throw new Error('La placa intrusa debe ser diferente a la placa del docente');
             }
-        });
 
-        if (quejaExistente) {
-            res.status(409).json({ error: 'Ya existe una queja pendiente para este cajón' });
-            return;
-        }
+            const quejaExistente = await tx.queja.findFirst({
+                where: { docenteId, cajonId: accesoReclamante.cajonId, estado: 'PENDIENTE' }
+            });
+            if (quejaExistente) throw new Error('Ya existe una queja pendiente para este cajón');
 
-        const nuevoCajon = await prisma.cajon.findFirst({
-            where: {
-                estado: 'LIBRE',
-                id: { not: accesoActivo.cajonId }
-            },
-            orderBy: {
-                distanciaEntrada: 'asc'
+            const vehiculoIntruso = await tx.vehiculo.findUnique({
+                where: { placa: placaOcupante },
+                select: { id: true, placa: true }
+            });
+            if (!vehiculoIntruso) throw new Error('La placa intrusa no pertenece a un vehículo registrado');
+
+            const accesoIntruso = await tx.acceso.findFirst({
+                where: { vehiculoId: vehiculoIntruso.id, fechaHoraSalida: null, docenteId: { not: docenteId } },
+                include: { cajon: true, docente: { select: { nombre: true } } }
+            });
+            if (!accesoIntruso) throw new Error('No hay un acceso activo asociado a la placa intrusa');
+            if (accesoIntruso.cajonId === accesoReclamante.cajonId) {
+                throw new Error('La placa intrusa ya está registrada en el cajón reclamado');
             }
-        });
 
-        if (!nuevoCajon) {
-            const queja = await prisma.queja.create({
+            const nuevoCajon = await tx.cajon.findFirst({
+                where: { estado: 'LIBRE', id: { notIn: [accesoReclamante.cajonId, accesoIntruso.cajonId] } },
+                orderBy: { distanciaEntrada: 'asc' }
+            });
+            if (!nuevoCajon) throw new Error('No hay un tercer cajón libre para reasignar al docente');
+
+            const queja = await tx.queja.create({
                 data: {
                     docenteId,
-                    cajonId: accesoActivo.cajonId,
+                    cajonId: accesoReclamante.cajonId,
+                    placaOcupante,
                     descripcion: descripcion || 'El cajón asignado se encuentra ocupado indebidamente',
                     estado: 'PENDIENTE'
                 }
             });
 
-            res.status(201).json({
-                message: 'Queja registrada, pero no hay cajones disponibles',
-                queja
-            });
-            return;
-        }
+            await tx.cajon.update({ where: { id: accesoIntruso.cajonId }, data: { estado: 'LIBRE', placaOcupante: null } });
+            await tx.cajon.update({ where: { id: accesoReclamante.cajonId }, data: { estado: 'OCUPADO', placaOcupante } });
+            await tx.cajon.update({ where: { id: nuevoCajon.id }, data: { estado: 'OCUPADO', placaOcupante: accesoReclamante.vehiculo.placa } });
+            await tx.acceso.update({ where: { id: accesoIntruso.id }, data: { cajonId: accesoReclamante.cajonId } });
+            await tx.acceso.update({ where: { id: accesoReclamante.id }, data: { cajonId: nuevoCajon.id } });
 
-        const [queja] = await prisma.$transaction([
-            prisma.queja.create({
-                data: {
-                    docenteId,
-                    cajonId: accesoActivo.cajonId,
-                    descripcion: descripcion || 'El cajón asignado se encuentra ocupado indebidamente',
-                    estado: 'PENDIENTE'
-                }
-            }),
-            prisma.cajon.update({
-                where: { id: nuevoCajon.id },
-                data: { estado: 'OCUPADO' }
-            }),
-            prisma.acceso.update({
-                where: { id: accesoActivo.id },
-                data: { cajonId: nuevoCajon.id }
-            })
-        ]);
+            return { queja, accesoReclamante, accesoIntruso, nuevoCajon };
+        });
 
         res.status(201).json({
-            message: 'Queja registrada y cajón reasignado correctamente',
+            message: 'Queja registrada: se corrigió la ocupación cruzada y se reasignaron ambos accesos',
             cajonAnterior: {
-                id: accesoActivo.cajon.id,
-                identificador: accesoActivo.cajon.identificador
+                id: resultado.accesoReclamante.cajon.id,
+                identificador: resultado.accesoReclamante.cajon.identificador
             },
             nuevoCajon: {
-                id: nuevoCajon.id,
-                identificador: nuevoCajon.identificador,
-                fila: nuevoCajon.fila,
-                columna: nuevoCajon.columna
+                id: resultado.nuevoCajon.id,
+                identificador: resultado.nuevoCajon.identificador,
+                fila: resultado.nuevoCajon.fila,
+                columna: resultado.nuevoCajon.columna
             },
-            queja
+            cajonLiberado: {
+                id: resultado.accesoIntruso.cajon.id,
+                identificador: resultado.accesoIntruso.cajon.identificador
+            },
+            queja: resultado.queja
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        const message = error instanceof Error ? error.message : 'Error interno del servidor';
+        const status = message.includes('no tiene un acceso') || message.includes('No hay un acceso') ? 404
+            : message.includes('Ya existe') ? 409
+                : message.includes('No hay un tercer') || message.includes('debe ser diferente') || message.includes('no pertenece') ? 400
+                    : 500;
+        res.status(status).json({ error: message });
     }
 };
 

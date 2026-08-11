@@ -1,30 +1,44 @@
 import { Router } from 'express';
-import { registrarEntrada, registrarSalida, obtenerHistorial } from './accesos.controller';
-import { verificarJWT } from '../../middlewares/auth.middleware';
+import { registrarEntrada, registrarSalida, obtenerActivos, obtenerHistorial, obtenerMisAccesos } from './accesos.controller';
+import { verificarToken } from '../../middlewares/auth.middleware';
 import { verificarRol } from '../../middlewares/role.middleware';
 
 const router = Router();
 
 // Endpoint para que el Tótem/Guardia escanee el QR y registre la entrada
 router.post(
-  '/entrada', 
-  verificarJWT, 
-  verificarRol(['GUARDIA', 'TOTEM', 'ADMIN']), 
+  '/entrada',
+  verificarToken,
+  verificarRol(['GUARDIA', 'ADMIN']),
   registrarEntrada
 );
 
 // Endpoint para registrar la salida y liberar el cajón
 router.put(
-  '/salida/:id', 
-  verificarJWT, 
-  verificarRol(['GUARDIA', 'TOTEM', 'ADMIN']), 
+  '/salida/:id',
+  verificarToken,
+  verificarRol(['GUARDIA', 'ADMIN']),
   registrarSalida
 );
 
 // Endpoint exclusivo para administradores
 router.get(
-  '/historial', 
-  verificarJWT, 
+  '/activos',
+  verificarToken,
+  verificarRol(['GUARDIA', 'ADMIN']),
+  obtenerActivos
+);
+
+router.get(
+  '/mios',
+  verificarToken,
+  verificarRol(['DOCENTE']),
+  obtenerMisAccesos
+);
+
+router.get(
+  '/historial',
+  verificarToken,
   verificarRol(['ADMIN']), 
   obtenerHistorial
 );

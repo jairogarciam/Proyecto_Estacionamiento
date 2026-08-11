@@ -146,3 +146,68 @@ export const eliminarVehiculo = async (req: AuthRequest, res: Response): Promise
         res.status(500).json({ error: 'Error al eliminar el vehículo' });
     }
 };
+
+// GET /api/docentes/catalogo - Docentes y vehículos para el control de acceso
+export const listarCatalogoAcceso = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const docentes = await prisma.usuario.findMany({
+            where: { rol: 'DOCENTE' },
+            select: {
+                id: true,
+                nombre: true,
+                usuario: true,
+                vehiculos: {
+                    select: { id: true, placa: true, marca: true, modelo: true, color: true },
+                    orderBy: { placa: 'asc' }
+                }
+            },
+            orderBy: { nombre: 'asc' }
+        });
+        res.json(docentes);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al obtener el catálogo de docentes' });
+    }
+};
+
+// PUT /api/docentes/vehiculos/:id
+export const actualizarVehiculo = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const docenteId = req.usuario.id;
+        const vehiculoId = Number(req.params.id);
+        const { placa, marca, modelo, color } = req.body;
+
+        if (!Number.isInteger(vehiculoId) || vehiculoId <= 0 || !placa || !marca || !modelo || !color) {
+            res.status(400).json({ error: 'Todos los datos del vehículo son obligatorios' });
+            return;
+        }
+
+        const vehiculo = await prisma.vehiculo.findFirst({ where: { id: vehiculoId, docenteId } });
+        if (!vehiculo) {
+            res.status(404).json({ error: 'Vehículo no encontrado o no pertenece al docente' });
+            return;
+        }
+
+        const placaDuplicada = await prisma.vehiculo.findFirst({ where: { placa, id: { not: vehiculoId } } });
+        if (placaDuplicada) {
+            res.status(409).json({ error: 'La placa ya está registrada' });
+            return;
+        }
+
+        const actualizado = await prisma.$transaction(async (tx) => {
+            const vehiculoActualizado = await tx.vehiculo.update({
+                where: { id: vehiculoId },
+                data: { placa, marca, modelo, color }
+            });
+            await tx.cajon.updateMany({
+                where: { placaOcupante: vehiculo.placa },
+                data: { placaOcupante: placa }
+            });
+            return vehiculoActualizado;
+        });
+        res.json({ message: 'Vehículo actualizado correctamente', vehiculo: actualizado });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al actualizar el vehículo' });
+    }
+};

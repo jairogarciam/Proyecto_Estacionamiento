@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estacionamiento | Acceso</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="login-layout">
+      <div class="intro">
+        <p class="eyebrow">SISTEMA DE ESTACIONAMIENTO</p>
+        <h1>Control de acceso al estacionamiento</h1>
+        <p class="intro-copy">Consulta cajones, registra entradas y administra vehículos desde un mismo sitio.</p>
+        <div class="signal-row"><span class="signal-dot"></span><span>Sistema disponible</span></div>
+      </div>
+      <form id="login-form" class="login-card">
+        <div>
+          <p class="eyebrow">INICIAR SESIÓN</p>
+          <h2>Entrar al sistema</h2>
+          <p class="muted">Escribe tu usuario y contraseña.</p>
+        </div>
+        <label>Usuario<input name="usuario" autocomplete="username" required placeholder="admin" /></label>
+        <label>Contraseña<input name="password" type="password" autocomplete="current-password" required placeholder="••••••••" /></label>
+        <button class="primary-button" type="submit">Entrar <span aria-hidden="true">↗</span></button>
+        <p id="login-error" class="form-error" role="alert"></p>
+      </form>
+    </section>
+  </main>
+  <script type="module" src="./js/login.js"></script>
+</body>
+</html>

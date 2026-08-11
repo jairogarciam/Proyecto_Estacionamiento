@@ -55,6 +55,7 @@ model Cajon {
   columna          Int
   distanciaEntrada Int         @map("distancia_entrada")
   estado           EstadoCajon
+  placaOcupante    String?     @map("placa_ocupante") @db.VarChar(50)
 
   accesos          Acceso[]
   quejas           Queja[]
@@ -81,6 +82,7 @@ model Queja {
   id          Int      @id @default(autoincrement())
   docenteId   Int      @map("docente_id")
   cajonId     Int      @map("cajon_id")
+  placaOcupante String  @map("placa_ocupante") @db.VarChar(50)
   descripcion String   @db.Text
   estado      String   @db.VarChar(50)
 

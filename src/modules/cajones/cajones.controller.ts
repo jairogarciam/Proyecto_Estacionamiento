@@ -12,7 +12,8 @@ export const listarCajones = async (req: Request, res: Response): Promise<void> 
                 fila: true,
                 columna: true,
                 distanciaEntrada: true,
-                estado: true
+                estado: true,
+                placaOcupante: true
             },
             orderBy: { identificador: 'asc' }
         });
@@ -78,13 +79,50 @@ export const actualizarEstado = async (req: AuthRequest, res: Response): Promise
 
         const actualizado = await prisma.cajon.update({
             where: { id },
-            data: { estado }
+            data: {
+                estado,
+                placaOcupante: estado === 'LIBRE' ? null : undefined
+            }
         });
 
         res.json({ message: 'Estado actualizado', cajon: actualizado });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error al actualizar el estado' });
+    }
+};
+
+// PUT /api/cajones/:id - Editar la ubicación y distancia de un cajón (Solo Admin)
+export const actualizarCajon = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const id = Number(req.params.id);
+        const { identificador, fila, columna, distanciaEntrada } = req.body;
+
+        if (!Number.isInteger(id) || id <= 0 || !identificador || !fila || !Number.isInteger(columna) || columna < 1 || !Number.isInteger(distanciaEntrada) || distanciaEntrada < 0) {
+            res.status(400).json({ error: 'Identificador, fila, columna y distancia válidos son obligatorios' });
+            return;
+        }
+
+        const cajon = await prisma.cajon.findUnique({ where: { id } });
+        if (!cajon) {
+            res.status(404).json({ error: 'Cajón no encontrado' });
+            return;
+        }
+
+        const duplicado = await prisma.cajon.findFirst({ where: { identificador, id: { not: id } } });
+        if (duplicado) {
+            res.status(409).json({ error: 'Ya existe otro cajón con ese identificador' });
+            return;
+        }
+
+        const actualizado = await prisma.cajon.update({
+            where: { id },
+            data: { identificador, fila, columna, distanciaEntrada }
+        });
+        res.json({ message: 'Cajón actualizado correctamente', cajon: actualizado });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al actualizar el cajón' });
     }
 };
 
