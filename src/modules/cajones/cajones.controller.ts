@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import prisma from '../../config/prisma';
 import { AuthRequest } from '../../middlewares/auth.middleware';
 
-// GET /api/cajones - Consultar el estado en tiempo real de todos los cajones
 export const listarCajones = async (req: Request, res: Response): Promise<void> => {
     try {
         const cajones = await prisma.cajon.findMany({
@@ -25,12 +24,10 @@ export const listarCajones = async (req: Request, res: Response): Promise<void> 
     }
 };
 
-// POST /api/cajones - Agregar un nuevo cajón físico (Solo Admin)
 export const crearCajon = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { identificador, fila, columna, distanciaEntrada, estado } = req.body;
 
-        // Validaciones básicas
         if (!identificador || !fila || typeof columna !== 'number') {
             res.status(400).json({ error: 'Datos inválidos para crear el cajón' });
             return;
@@ -59,7 +56,6 @@ export const crearCajon = async (req: AuthRequest, res: Response): Promise<void>
     }
 };
 
-// PUT /api/cajones/:id/estado - Modificar manualmente el estado de un cajón (Admin o Guardia)
 export const actualizarEstado = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const id = parseInt(req.params.id as string, 10);
@@ -92,7 +88,6 @@ export const actualizarEstado = async (req: AuthRequest, res: Response): Promise
     }
 };
 
-// PUT /api/cajones/:id - Editar la ubicación y distancia de un cajón (Solo Admin)
 export const actualizarCajon = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const id = Number(req.params.id);

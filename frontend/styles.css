@@ -1,15 +1,6 @@
-/* ============================================================
-   Sistema de Estacionamiento — Hoja de estilos
-   Rediseño visual: mismas clases/IDs que usa el HTML y el JS,
-   solo cambia la apariencia (tipografía, color, espaciado,
-   sombras, animaciones). No se modificó ninguna estructura
-   ni comportamiento.
-   ============================================================ */
-
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Paleta institucional modernizada (azul/teal) */
   --ink: #0f1b24;
   --muted: #64748b;
   --muted-soft: #94a3b8;
@@ -17,14 +8,14 @@
   --paper: #f4f7fa;
   --white: #ffffff;
 
-  --green: #0891a8;          /* acento principal (teal) */
+  --green: #0891a8;
   --green-dark: #0a6b7f;
   --mint: #e3f6f8;
 
-  --blue: #2f6fb5;           /* azul institucional */
+  --blue: #2f6fb5;
   --blue-dark: #235486;
 
-  --navy: #0e1f2b;           /* sidebar / superficies oscuras */
+  --navy: #0e1f2b;
   --navy-soft: #16303f;
 
   --yellow: #f2b705;
@@ -76,9 +67,6 @@ a { color: inherit; }
 
 .muted { color: var(--muted); font: 14px/1.5 var(--font-body); }
 
-/* ------------------------------------------------------------
-   Login
-   ------------------------------------------------------------ */
 .shell { min-height: 100vh; display: flex; }
 
 .login-layout {
@@ -142,9 +130,6 @@ a { color: inherit; }
 }
 .login-card h2 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
 
-/* ------------------------------------------------------------
-   Formularios
-   ------------------------------------------------------------ */
 label {
   display: grid;
   gap: 8px;
@@ -197,9 +182,6 @@ input:focus, select:focus, textarea:focus {
 .form-grid > .success-message,
 .form-grid > .form-error { grid-column: 1 / -1; }
 
-/* ------------------------------------------------------------
-   Botones
-   ------------------------------------------------------------ */
 .primary-button, .outline-button, .ghost-button, .danger-button {
   cursor: pointer;
   border: 0;
@@ -246,9 +228,6 @@ input:focus, select:focus, textarea:focus {
 
 .hidden { display: none !important; }
 
-/* ------------------------------------------------------------
-   Cabecera de app (topbar)
-   ------------------------------------------------------------ */
 .topbar {
   display: flex;
   justify-content: space-between;
@@ -275,9 +254,6 @@ input:focus, select:focus, textarea:focus {
 }
 .user-label { color: rgba(255, 255, 255, .72); font: 500 13px var(--font-body); }
 
-/* ------------------------------------------------------------
-   Layout de la app (sidebar + contenido)
-   ------------------------------------------------------------ */
 .app-shell { min-height: 100vh; background: var(--paper); }
 
 .app-content {
@@ -334,9 +310,6 @@ input:focus, select:focus, textarea:focus {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ------------------------------------------------------------
-   Encabezados de sección / paneles
-   ------------------------------------------------------------ */
 .page-heading, .panel-heading {
   display: flex;
   justify-content: space-between;
@@ -357,9 +330,6 @@ input:focus, select:focus, textarea:focus {
 }
 .panel h2 { font-size: 22px; }
 
-/* ------------------------------------------------------------
-   Métricas
-   ------------------------------------------------------------ */
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -393,9 +363,6 @@ input:focus, select:focus, textarea:focus {
 }
 .accent .metric-label, .accent .metric-foot { color: rgba(255, 255, 255, .68); }
 
-/* ------------------------------------------------------------
-   Cajones de estacionamiento
-   ------------------------------------------------------------ */
 .parking-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
@@ -454,9 +421,6 @@ input:focus, select:focus, textarea:focus {
 .parking-slot select:focus { box-shadow: 0 0 0 3px rgba(255, 255, 255, .5); }
 .parking-slot .edit-slot { padding: 7px 10px; font-size: 10.5px; }
 
-/* ------------------------------------------------------------
-   Listas tipo tabla
-   ------------------------------------------------------------ */
 .table-list { display: grid; gap: 0; margin-top: 22px; }
 
 .table-row {
@@ -489,9 +453,6 @@ input:focus, select:focus, textarea:focus {
 
 .row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 
-/* ------------------------------------------------------------
-   Perfil / QR
-   ------------------------------------------------------------ */
 .profile-card { max-width: 620px; margin-top: 24px; }
 .profile-card h3 { margin: 0 0 8px; font-size: 27px; font-weight: 700; }
 .qr-value {
@@ -505,9 +466,6 @@ input:focus, select:focus, textarea:focus {
   font: 12px/1.4 'SFMono-Regular', Consolas, monospace;
 }
 
-/* ------------------------------------------------------------
-   Responsive
-   ------------------------------------------------------------ */
 @media (max-width: 820px) {
   .login-layout { grid-template-columns: 1fr; align-content: center; padding: 34px 22px; }
   .intro { padding: 0; }

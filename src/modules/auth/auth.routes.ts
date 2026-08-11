@@ -5,7 +5,6 @@ import { verificarRol } from '../../middlewares/role.middleware';
 
 const router = Router();
 
-// Rutas de autenticación
 router.post('/registrar', registrar);
 router.post('/usuarios', verificarToken, verificarRol(['ADMIN']), registrar);
 router.get('/usuarios', verificarToken, verificarRol(['ADMIN']), listarUsuarios);

@@ -4,11 +4,6 @@ import crypto from 'crypto';
 import prisma from '../../config/prisma';
 import { AuthRequest } from '../../middlewares/auth.middleware';
 
-// ==========================================
-// RUTAS DE ADMINISTRADOR
-// ==========================================
-
-// GET /api/docentes - Listar todos los docentes
 export const listarDocentes = async (req: Request, res: Response): Promise<void> => {
     try {
         const docentes = await prisma.usuario.findMany({
@@ -21,7 +16,6 @@ export const listarDocentes = async (req: Request, res: Response): Promise<void>
     }
 };
 
-// POST /api/docentes - Registrar un nuevo docente
 export const registrarDocente = async (req: Request, res: Response): Promise<void> => {
     try {
         const { nombre, usuario } = req.body;
@@ -57,11 +51,6 @@ export const registrarDocente = async (req: Request, res: Response): Promise<voi
     }
 };
 
-// ==========================================
-// RUTAS DE DOCENTE
-// ==========================================
-
-// GET /api/docentes/perfil
 export const verPerfil = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const docenteId = req.usuario.id;
@@ -77,7 +66,6 @@ export const verPerfil = async (req: AuthRequest, res: Response): Promise<void> 
     }
 };
 
-// POST /api/docentes/vehiculos
 export const registrarVehiculo = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const docenteId = req.usuario.id;
@@ -89,7 +77,7 @@ export const registrarVehiculo = async (req: AuthRequest, res: Response): Promis
                 marca, 
                 modelo, 
                 color, 
-                docenteId // <-- Adaptado a tu esquema
+                docenteId
             }
         });
 
@@ -102,13 +90,12 @@ export const registrarVehiculo = async (req: AuthRequest, res: Response): Promis
     }
 };
 
-// GET /api/docentes/vehiculos
 export const listarVehiculos = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const docenteId = req.usuario.id;
 
         const vehiculos = await prisma.vehiculo.findMany({ 
-            where: { docenteId } // <-- Adaptado a tu esquema
+            where: { docenteId }
         });
         
         res.json({ vehiculos });
@@ -117,7 +104,6 @@ export const listarVehiculos = async (req: AuthRequest, res: Response): Promise<
     }
 };
 
-// DELETE /api/docentes/vehiculos/:id
 export const eliminarVehiculo = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const docenteIdReq = req.usuario.id;
@@ -132,7 +118,7 @@ export const eliminarVehiculo = async (req: AuthRequest, res: Response): Promise
             return;
         }
 
-        if (vehiculo.docenteId !== docenteIdReq) { // <-- Adaptado a tu esquema
+        if (vehiculo.docenteId !== docenteIdReq) {
             res.status(403).json({ error: 'No tienes permiso para eliminar este vehículo' });
             return;
         }
@@ -147,7 +133,6 @@ export const eliminarVehiculo = async (req: AuthRequest, res: Response): Promise
     }
 };
 
-// GET /api/docentes/catalogo - Docentes y vehículos para el control de acceso
 export const listarCatalogoAcceso = async (req: Request, res: Response): Promise<void> => {
     try {
         const docentes = await prisma.usuario.findMany({
@@ -170,7 +155,6 @@ export const listarCatalogoAcceso = async (req: Request, res: Response): Promise
     }
 };
 
-// PUT /api/docentes/vehiculos/:id
 export const actualizarVehiculo = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const docenteId = req.usuario.id;

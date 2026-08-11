@@ -6,7 +6,6 @@ import { AuthRequest } from '../../middlewares/auth.middleware';
 
 const rolesValidos = ['ADMIN', 'GUARDIA', 'DOCENTE'] as const;
 
-// Función para registrar usuarios
 export const registrar = async (req: Request, res: Response): Promise<void> => {
     try {
         const { nombre, usuario, password, rol } = req.body;
@@ -16,22 +15,19 @@ export const registrar = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // 1. Verificar si el nombre de usuario ya existe
         const usuarioExistente = await prisma.usuario.findUnique({ where: { usuario } });
         if (usuarioExistente) {
             res.status(400).json({ error: 'El nombre de usuario ya está en uso' });
             return;
         }
 
-        // 2. Encriptar la contraseña
         const salt = await bcrypt.genSalt(10);
         const passwordEncriptada = await bcrypt.hash(password, salt);
 
-        // 3. Guardar el usuario en la BD
         const nuevoUsuario = await prisma.usuario.create({
             data: {
                 nombre,
-                usuario, // Guardamos el nuevo campo
+                usuario,
                 password: passwordEncriptada,
                 rol
             }
@@ -44,7 +40,6 @@ export const registrar = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-// Función para iniciar sesión
 export const login = async (req: Request, res: Response): Promise<void> => {
     try {
         const { usuario, password } = req.body;
@@ -54,21 +49,18 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // 1. Buscar al usuario en la base de datos
         const usuarioEncontrado = await prisma.usuario.findUnique({ where: { usuario } });
         if (!usuarioEncontrado) {
             res.status(401).json({ error: 'Credenciales inválidas' });
             return;
         }
 
-        // 2. Comparar contraseñas
         const passwordValida = await bcrypt.compare(password, usuarioEncontrado.password);
         if (!passwordValida) {
             res.status(401).json({ error: 'Credenciales inválidas' });
             return;
         }
 
-        // 3. Generar el Token JWT
         const secret = process.env.JWT_SECRET || 'firma_secreta_por_defecto';
         const token = jwt.sign(
             { id: usuarioEncontrado.id, rol: usuarioEncontrado.rol }, 

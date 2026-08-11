@@ -5,7 +5,6 @@ import { verificarRol } from '../../middlewares/role.middleware';
 
 const router = Router();
 
-// Endpoint para que el Tótem/Guardia escanee el QR y registre la entrada
 router.post(
   '/entrada',
   verificarToken,
@@ -13,7 +12,6 @@ router.post(
   registrarEntrada
 );
 
-// Endpoint para registrar la salida y liberar el cajón
 router.put(
   '/salida/:id',
   verificarToken,
@@ -21,7 +19,6 @@ router.put(
   registrarSalida
 );
 
-// Endpoint exclusivo para administradores
 router.get(
   '/activos',
   verificarToken,

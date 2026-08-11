@@ -3,7 +3,6 @@ import { Prisma } from '@prisma/client';
 import prisma from '../../config/prisma';
 import { AuthRequest } from '../../middlewares/auth.middleware';
 
-// Crear queja y reasignar cajón
 export const crearQueja = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const docenteId = req.usuario?.id;
@@ -106,7 +105,6 @@ export const crearQueja = async (req: AuthRequest, res: Response): Promise<void>
     }
 };
 
-// Listar quejas pendientes
 export const listarQuejas = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const quejas = await prisma.queja.findMany({
@@ -134,7 +132,6 @@ export const listarQuejas = async (req: AuthRequest, res: Response): Promise<voi
     }
 };
 
-// Resolver queja
 export const resolverQueja = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const id = Number(req.params.id);
